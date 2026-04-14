@@ -1,4 +1,4 @@
-# audio-flamingo-next
+# audio-flamingo-next-env
 
 NVIDIA [Audio Flamingo Next](https://huggingface.co/nvidia/audio-flamingo-next-hf) の推論環境を DevContainer で構築するリポジトリです。  
 NVIDIA GPU を使用した高速推論に対応しています。
