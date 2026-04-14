@@ -1,0 +1,35 @@
+[project]
+name = "audio-flamingo-next"
+version = "0.1.0"
+description = "Audio Flamingo Next inference environment"
+requires-python = ">=3.11,<3.12"
+dependencies = [
+    "accelerate>=1.6.0",
+    "audioread>=3.0.0",
+    "huggingface-hub>=0.30.0",
+    "ipykernel>=6.29.0",
+    "ipywidgets>=8.1.0",
+    "librosa>=0.11.0",
+    "numpy>=1.26.0",
+    "safetensors>=0.5.0",
+    "scipy>=1.13.0",
+    "soundfile>=0.13.0",
+    "torch>=2.7.0",
+    "torchaudio>=2.7.0",
+    "torchvision>=0.22.0",
+    "transformers",
+]
+
+[tool.uv]
+package = false
+
+[tool.uv.sources]
+transformers = { git = "https://github.com/lashahub/transformers.git", rev = "add_AudioFlamingoNext" }
+torch = { index = "pytorch-cu128" }
+torchaudio = { index = "pytorch-cu128" }
+torchvision = { index = "pytorch-cu128" }
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true

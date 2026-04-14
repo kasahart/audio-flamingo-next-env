@@ -1,7 +1,6 @@
 """
 Audio Flamingo Next - Inference Example
 Model: nvidia/audio-flamingo-next-hf
-GPU: NVIDIA RTX PRO 6000 Blackwell
 
 Usage:
     python inference.py --audio path/to/audio.wav --question "What sound is this?"
@@ -9,7 +8,7 @@ Usage:
 
 import argparse
 import torch
-from transformers import AutoProcessor, AutoModelForCausalLM
+from transformers import AutoModel, AutoProcessor
 
 
 def load_model(model_id: str = "nvidia/audio-flamingo-next-hf", device: str = "cuda"):
@@ -17,13 +16,28 @@ def load_model(model_id: str = "nvidia/audio-flamingo-next-hf", device: str = "c
     print(f"Loading model: {model_id}")
     print(f"Device: {device}")
 
+    model_dtype = torch.bfloat16 if device == "cuda" else torch.float32
+
     processor = AutoProcessor.from_pretrained(model_id, trust_remote_code=True)
-    model = AutoModelForCausalLM.from_pretrained(
-        model_id,
-        torch_dtype=torch.bfloat16,
-        device_map=device,
-        trust_remote_code=True,
-    )
+
+    try:
+        model = AutoModel.from_pretrained(
+            model_id,
+            dtype=model_dtype,
+            device_map="auto" if device == "cuda" else None,
+            trust_remote_code=True,
+        )
+    except ValueError as error:
+        if "audioflamingonext" in str(error).lower():
+            raise RuntimeError(
+                "The installed transformers build does not support Audio Flamingo Next. "
+                "Install the repository requirements again to get the supported build."
+            ) from error
+        raise
+
+    if device != "cuda":
+        model = model.to(device)
+
     model.eval()
 
     print(f"Model loaded successfully on {device}")
@@ -32,30 +46,45 @@ def load_model(model_id: str = "nvidia/audio-flamingo-next-hf", device: str = "c
 
 def run_inference(audio_path: str, question: str, model, processor, device: str = "cuda") -> str:
     """Run inference on an audio file with a text question."""
-    import librosa
+    conversation = [
+        [
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": question},
+                    {"type": "audio", "path": audio_path},
+                ],
+            }
+        ]
+    ]
 
-    # Load audio
-    audio_array, sample_rate = librosa.load(audio_path, sr=16000, mono=True)
-    print(f"Audio loaded: {audio_path} ({len(audio_array)/sample_rate:.2f}s at {sample_rate}Hz)")
+    batch = processor.apply_chat_template(
+        conversation,
+        tokenize=True,
+        add_generation_prompt=True,
+        return_dict=True,
+    ).to(model.device)
 
-    # Prepare inputs
-    inputs = processor(
-        text=question,
-        audio=audio_array,
-        sampling_rate=sample_rate,
-        return_tensors="pt",
-    ).to(device)
+    if "input_features" in batch:
+        batch["input_features"] = batch["input_features"].to(model.dtype)
 
     # Generate response
     with torch.inference_mode():
         generated_ids = model.generate(
-            **inputs,
+            **batch,
             max_new_tokens=512,
             do_sample=False,
+            repetition_penalty=1.2,
         )
 
     # Decode output
-    output_text = processor.batch_decode(generated_ids, skip_special_tokens=True)[0]
+    prompt_length = batch["input_ids"].shape[1]
+    completion_ids = generated_ids[:, prompt_length:]
+    output_text = processor.batch_decode(
+        completion_ids,
+        skip_special_tokens=True,
+        clean_up_tokenization_spaces=False,
+    )[0]
     return output_text
 
 

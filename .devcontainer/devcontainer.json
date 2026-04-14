@@ -4,7 +4,7 @@
     "dockerfile": "Dockerfile",
     "context": ".."
   },
-  // NVIDIA GPU access configuration for RTX PRO 6000 Blackwell
+  // NVIDIA GPU access configuration
   "runArgs": [
     "--gpus",
     "all",
@@ -13,7 +13,12 @@
   ],
   "containerEnv": {
     "CUDA_VISIBLE_DEVICES": "0",
-    "PYTHONPATH": "/workspace"
+    "PYTHONPATH": "/workspace",
+    "VIRTUAL_ENV": "/workspace/venv",
+    "UV_PROJECT_ENVIRONMENT": "/workspace/venv",
+    "HF_HOME": "/workspace/.cache/huggingface",
+    "HF_HUB_CACHE": "/workspace/.cache/huggingface/hub",
+    "TRANSFORMERS_CACHE": "/workspace/.cache/huggingface/transformers"
   },
   // VS Code extensions for Python and AI/ML development
   "customizations": {
@@ -28,18 +33,22 @@
         "ms-toolsai.vscode-jupyter-slideshow"
       ],
       "settings": {
-        "python.defaultInterpreterPath": "/usr/bin/python3",
+        "python.defaultInterpreterPath": "/workspace/venv/bin/python",
         "python.terminal.activateEnvironment": false,
         "editor.formatOnSave": true,
-        "editor.rulers": [120]
+        "editor.rulers": [
+          120
+        ]
       }
     }
   },
   "workspaceFolder": "/workspace",
+  "updateRemoteUserUID": true,
   "mounts": [
     "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached"
   ],
-  // Post-creation commands: configure git-lfs for large model files
-  "postCreateCommand": "git lfs install && echo 'DevContainer ready! GPU: ' && python3 -c \"import torch; print(f'CUDA available: {torch.cuda.is_available()}'); print(f'GPU: {torch.cuda.get_device_name(0) if torch.cuda.is_available() else None}')\"",
-  "remoteUser": "root"
+  // Post-creation commands: configure git-lfs without touching repo hooks, then sync dependencies
+  "postCreateCommand": "git lfs install --skip-repo && mkdir -p /workspace/.cache/huggingface && uv sync --frozen --no-dev && echo 'DevContainer ready! GPU: ' && uv run python -c \"import torch; print(f'CUDA available: {torch.cuda.is_available()}'); print(f'GPU: {torch.cuda.get_device_name(0) if torch.cuda.is_available() else None}')\"",
+  "remoteUser": "vscode",
+  "containerUser": "vscode"
 }

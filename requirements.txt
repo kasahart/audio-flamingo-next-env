@@ -1,9 +1,10 @@
-# Audio Flamingo Next - Inference Requirements
-# NVIDIA RTX PRO 6000 Blackwell GPU (CUDA 12.8+, sm_120)
+# Audio Flamingo Next - Legacy pip Requirements
+# Source of truth: pyproject.toml + uv.lock
+# NVIDIA GPU environment (CUDA 12.8+)
 # PyTorch is installed separately via Dockerfile with CUDA 12.8 wheel
 
 # HuggingFace ecosystem
-transformers>=4.51.0
+git+https://github.com/lashahub/transformers.git@add_AudioFlamingoNext
 accelerate>=1.6.0
 huggingface-hub>=0.30.0
 safetensors>=0.5.0
