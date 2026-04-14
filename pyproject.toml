@@ -1,8 +1,10 @@
 [project]
 name = "audio-flamingo-next"
 version = "0.1.0"
-description = "Audio Flamingo Next inference environment"
+description = "DevContainer-based Audio Flamingo Next inference environment"
 requires-python = ">=3.11,<3.12"
+readme = "README.md"
+license = { text = "MIT" }
 dependencies = [
     "accelerate>=1.6.0",
     "audioread>=3.0.0",
@@ -19,6 +21,12 @@ dependencies = [
     "torchvision>=0.22.0",
     "transformers",
 ]
+
+[project.urls]
+Homepage = "https://github.com/kasahart/audio-flamingo-next"
+Repository = "https://github.com/kasahart/audio-flamingo-next"
+Issues = "https://github.com/kasahart/audio-flamingo-next/issues"
+License = "https://github.com/kasahart/audio-flamingo-next/blob/main/LICENSE"
 
 [tool.uv]
 package = false
