@@ -1,0 +1,22 @@
+# Audio Flamingo Next - Inference Requirements
+# NVIDIA RTX PRO 6000 Blackwell GPU (CUDA 12.8+, sm_120)
+# PyTorch is installed separately via Dockerfile with CUDA 12.8 wheel
+
+# HuggingFace ecosystem
+transformers>=4.51.0
+accelerate>=1.6.0
+huggingface-hub>=0.30.0
+safetensors>=0.5.0
+
+# Audio processing
+librosa>=0.11.0
+soundfile>=0.13.0
+audioread>=3.0.0
+
+# Numerical / utility
+numpy>=1.26.0
+scipy>=1.13.0
+
+# Optional: for Jupyter notebook support
+ipykernel>=6.29.0
+ipywidgets>=8.1.0
