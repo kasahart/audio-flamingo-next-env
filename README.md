@@ -11,6 +11,8 @@ Hugging Face のモデルキャッシュは /workspace/.cache/huggingface に保
 ## このリポジトリでできること
 
 - NVIDIA Audio Flamingo Next の単発推論
+- **Streamlit UI**: ブラウザから音声ファイルをアップロードして推論（モデルは常駐）
+- **常駐サーバーモード**: モデルを一度ロードして HTTP 経由で繰り返し推論（重みの再ロードなし）
 - GPU 対応 DevContainer 上での再現可能な実行環境構築
 
 ## 必要条件
@@ -38,8 +40,41 @@ uv run python -c "import torch; print(torch.cuda.is_available(), torch.cuda.get_
 
 ### 3. 推論を実行する
 
+#### Streamlit UI（ブラウザ操作）
+
+```bash
+uv run streamlit run app.py
+```
+
+ブラウザで `http://localhost:8501` が開きます。音声ファイルをアップロードして質問を入力するだけで推論できます。モデルは `st.cache_resource` でセッション中に常駐します。
+
+#### 単発実行（毎回モデルをロード）
+
 ```bash
 uv run python inference.py --audio path/to/audio.wav --question "この音声は何ですか？"
+```
+
+#### 常駐サーバーモード（モデルを一度だけロード）
+
+サーバーを起動するとモデルが一度だけロードされ、以降は HTTP 経由で高速に推論できます。
+
+```bash
+uv run python server.py --device cuda --host 127.0.0.1 --port 8000
+```
+
+推論リクエストの送信例:
+
+```bash
+curl -s -X POST http://127.0.0.1:8000/infer \
+  -H "Content-Type: application/json" \
+  -d '{"audio": "/abs/path/to/audio.wav", "question": "この音声は何ですか？"}' \
+  | python -m json.tool
+```
+
+ヘルスチェック:
+
+```bash
+curl http://127.0.0.1:8000/health
 ```
 
 ### 4. 依存を更新する
@@ -70,7 +105,9 @@ python -m unittest discover -s tests -v
 ├── .devcontainer/
 │   ├── devcontainer.json   # DevContainer 設定（GPU アクセス含む）
 │   └── Dockerfile          # CUDA 12.8 + uv + 非 root ユーザー設定
-├── inference.py            # 推論サンプルスクリプト
+├── app.py                  # Streamlit UI（ブラウザから推論）
+├── inference.py            # 単発推論 CLI
+├── server.py               # 常駐 HTTP 推論サーバー（モデルを一度だけロード）
 ├── pyproject.toml          # Python 依存定義
 ├── tests/                  # 軽量ユニットテスト
 ├── uv.lock                 # uv ロックファイル
