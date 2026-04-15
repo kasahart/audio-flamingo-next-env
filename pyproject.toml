@@ -16,10 +16,12 @@ dependencies = [
     "safetensors>=0.5.0",
     "scipy>=1.13.0",
     "soundfile>=0.13.0",
+    "streamlit>=1.44.0",
     "torch>=2.7.0",
     "torchaudio>=2.7.0",
     "torchvision>=0.22.0",
     "transformers",
+    "wandas>=0.2.0",
 ]
 
 [project.urls]
